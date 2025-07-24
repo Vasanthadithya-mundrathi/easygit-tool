@@ -14,7 +14,7 @@ class GitRepository {
   async initialize() {
     try {
       // Check if we're in a git repository
-      await this.git.status();
+      const status = await this.git.status();
       this.isInitialized = true;
       
       // Gather repository information
@@ -22,7 +22,8 @@ class GitRepository {
       
       return true;
     } catch (error) {
-      if (error.message.includes('not a git repository')) {
+      if (error.message.includes('not a git repository') || 
+          error.message.includes('Not a git repository')) {
         throw new Error('not a git repository');
       }
       throw error;

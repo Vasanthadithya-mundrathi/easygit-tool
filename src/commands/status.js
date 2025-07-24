@@ -1,10 +1,14 @@
 const chalk = require('chalk');
 
 class StatusCommand {
-  constructor(program, gitRepo, errorHandler) {
-    this.gitRepo = gitRepo;
+  constructor(program, gitRepoGetter, errorHandler) {
+    this.gitRepoGetter = gitRepoGetter;
     this.errorHandler = errorHandler;
     this.setupCommand(program);
+  }
+
+  get gitRepo() {
+    return this.gitRepoGetter();
   }
 
   setupCommand(program) {

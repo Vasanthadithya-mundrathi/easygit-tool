@@ -46,25 +46,27 @@ class EasygitCLI {
         } catch (error) {
           if (error.message.includes('not a git repository')) {
             console.log(chalk.yellow('⚠️  Not in a Git repository. Some commands may not work.'));
+            this.gitRepo = null; // Set to null so commands can handle it
           } else {
             console.error(chalk.red('Error initializing Git repository:'), error.message);
+            this.gitRepo = null;
           }
         }
       });
   }
 
   registerCommands() {
-    // Core commands
-    new SaveCommand(this.program, this.gitRepo, this.errorHandler);
-    new SyncCommand(this.program, this.gitRepo, this.errorHandler);
-    new SwitchCommand(this.program, this.gitRepo, this.errorHandler);
-    new UpdateCommand(this.program, this.gitRepo, this.errorHandler);
-    new UndoCommand(this.program, this.gitRepo, this.errorHandler);
-    new StatusCommand(this.program, this.gitRepo, this.errorHandler);
+    // Core commands - pass this reference so they get updated gitRepo
+    new SaveCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new SyncCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new SwitchCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new UpdateCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new UndoCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new StatusCommand(this.program, () => this.gitRepo, this.errorHandler);
     
     // AI and diagnostic commands
-    new AskCommand(this.program, this.gitRepo, this.errorHandler);
-    new DoctorCommand(this.program, this.gitRepo, this.errorHandler);
+    new AskCommand(this.program, () => this.gitRepo, this.errorHandler);
+    new DoctorCommand(this.program, () => this.gitRepo, this.errorHandler);
   }
 
   async run() {
