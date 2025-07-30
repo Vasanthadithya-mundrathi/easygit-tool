@@ -64,6 +64,10 @@ class EasygitCLI {
     new UndoCommand(this.program, () => this.gitRepo, this.errorHandler);
     new StatusCommand(this.program, () => this.gitRepo, this.errorHandler);
     
+    // Advanced commands
+    const RebaseCommand = require('./commands/rebase');
+    new RebaseCommand(this.program, () => this.gitRepo, this.errorHandler);
+    
     // AI and diagnostic commands
     new AskCommand(this.program, () => this.gitRepo, this.errorHandler);
     new DoctorCommand(this.program, () => this.gitRepo, this.errorHandler);

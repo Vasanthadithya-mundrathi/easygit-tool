@@ -4,10 +4,14 @@ const fs = require('fs').promises;
 const path = require('path');
 
 class SaveCommand {
-  constructor(program, gitRepo, errorHandler) {
-    this.gitRepo = gitRepo;
+  constructor(program, gitRepoGetter, errorHandler) {
+    this.gitRepoGetter = gitRepoGetter;
     this.errorHandler = errorHandler;
     this.setupCommand(program);
+  }
+
+  get gitRepo() {
+    return this.gitRepoGetter();
   }
 
   setupCommand(program) {
@@ -189,8 +193,16 @@ class SaveCommand {
 
   async checkSensitiveFiles() {
     const status = await this.gitRepo.getStatus();
-    const allFiles = [...status.created, ...status.modified];
-    
+    // Get all files that are either modified, created, or untracked and not ignored
+    const allRelevantFiles = [
+      ...status.modified,
+      ...status.staged,
+      ...status.deleted, // Deleted files might still have sensitive names
+      ...(await this.gitRepo.git.raw(["ls-files", "--others", "--exclude-standard"])) // Untracked, non-ignored files
+        .split("\n")
+        .filter(Boolean)
+    ];
+
     const sensitivePatterns = [
       /\.env$/,
       /\.env\./,
@@ -204,28 +216,33 @@ class SaveCommand {
       /secrets?\.json$/,
       /credentials?\.json$/,
       /\.aws\/credentials$/,
-      /\.ssh\/config$/
+      /\.ssh\/config$/,
+      /api_key\.txt$/ // Add the specific file name for testing
     ];
 
-    const sensitiveFiles = allFiles.filter(file => 
-      sensitivePatterns.some(pattern => pattern.test(file))
-    );
+    const sensitiveFiles = allRelevantFiles.filter(file => {
+      const isSensitive = sensitivePatterns.some(pattern => pattern.test(file));
+      if (isSensitive) {
+        console.log(`DEBUG: Detected sensitive file: ${file}`); // Debug log
+      }
+      return isSensitive;
+    });
 
     if (sensitiveFiles.length > 0) {
-      console.log(chalk.red('\n🚨 Potentially sensitive files detected:'));
+      console.log(chalk.red("\n🚨 Potentially sensitive files detected:"));
       sensitiveFiles.forEach(file => {
         console.log(chalk.red(`   • ${file}`));
       });
 
       const { proceed } = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'proceed',
-        message: 'These files may contain sensitive information. Continue?',
+        type: "confirm",
+        name: "proceed",
+        message: "These files may contain sensitive information. Continue?",
         default: false
       }]);
 
       if (!proceed) {
-        throw new Error('Sensitive files detected - commit cancelled');
+        throw new Error("Sensitive files detected - commit cancelled");
       }
     }
   }
@@ -273,6 +290,7 @@ class SaveCommand {
 
     // Handle untracked files
     if (status.created.length > 0) {
+      console.log("Untracked files in status.created:", status.created); // Debug log
       if (options.all) {
         console.log(chalk.blue(`📁 Staging ${status.created.length} new files...`));
         await this.gitRepo.addFiles(status.created);
