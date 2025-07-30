@@ -21,7 +21,7 @@ An intelligent Git tool that makes version control safer, easier, and more produ
 - **Auto-stashing**: Automatic stash/restore during operations
 - **Team Configuration**: Support for team workflows and conventions
 - **Monorepo Support**: Performance optimizations for large repositories
-- **AI Integration**: Natural language Git assistance (coming soon)
+- **AI Integration**: Natural language Git assistance with Gemini CLI
 
 ## 📦 Installation
 
@@ -36,6 +36,31 @@ cd easygit
 npm install
 npm link
 ```
+
+## 🤖 AI Assistant Setup (Optional but Recommended)
+
+To enable the full AI-powered assistance features:
+
+1. **Get a free Gemini API key:**
+   - Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Create a new API key (free tier includes 1000 requests/day)
+
+2. **Set up the API key:**
+   ```bash
+   # Option 1: Environment variable (recommended)
+   export GEMINI_API_KEY="your_api_key_here"
+   
+   # Option 2: Add to your shell profile for persistence
+   echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+3. **Test AI integration:**
+   ```bash
+   easygit ask "How do I create a new branch?"
+   ```
+
+Without the API key, easygit will use intelligent fallback responses that still provide helpful guidance.
 
 ## 🎯 Quick Start
 
